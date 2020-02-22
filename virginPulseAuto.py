@@ -26,23 +26,26 @@ from selenium.webdriver.common.by import By
 # http://selenium-python.readthedocs.io/locating-elements.html
 
 def usage():
-    print "virginPulseAuto.py -u <username> -p <password>"
+    print "virginPulseAuto.py -u <username> -p <password> [-d]"
 
 def main():
     # Get username and password args from command line.
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'u:p:') # get the args
+        opts, args = getopt.getopt(sys.argv[1:], 'u:p:d') # get the args
     except getopt.GetoptError as err:
         print str(err)  # will print something like "option -a not recognized"
         usage()
         exit()
     username = None
     password = None
+    disableLogging = False
     for option, arg in opts:
         if   option == "-u":
             username = arg
         elif option == "-p":
             password = arg
+        elif option == "-d":
+            disableLogging = True
         else:
             assert False, "unrecognized option!"
     if username == None or password == None:
@@ -58,7 +61,7 @@ def main():
     ##
     
     # Log in with username and password
-    print 'Logging in to Virgin Pulse.'
+    print 'Signing in to Virgin Pulse.'
     driver.get("https://member.virginpulse.com/login.aspx")
     time.sleep(10)  # Give the page time to load.
     driver.find_element_by_id('username').send_keys(username)
@@ -69,38 +72,42 @@ def main():
     # Navigate to the tracking page
     driver.get("https://app.member.virginpulse.com/#/healthyhabits")
     time.sleep(3)  # Give the page time to load.
-    
-    # Enter sleep hours
-    driver.find_element_by_id('sleepHours').send_keys('8')
-    driver.find_element_by_id('track-sleep').click()
-    time.sleep(1)
 
-    # Enter steps
-    driver.find_element_by_id('numberOfSteps').send_keys('5000')
-    driver.find_element_by_id('track-steps').click()
-    time.sleep(1)
-
-    # Enter workout
-    # In my case, 60 minutes of Circuit Training on Mon, Wed, Friday.
-    dayOfWeek = datetime.datetime.today().weekday()
-    if(    dayOfWeek == 0   # Monday
-        or dayOfWeek == 2   # Wednesday
-        or dayOfWeek == 4): # Friday
-        driver.find_element_by_id('steps-converter-activity-input').send_keys('Circuit Training' + Keys.ENTER)
-        driver.find_element_by_id('steps-converter-time-input').send_keys('60')
-        driver.find_element_by_id('steps-converter-submit').click()
+    if not disableLogging:
+        # Enter sleep hours
+        driver.find_element_by_id('sleepHours').send_keys('8')
+        driver.find_element_by_id('track-sleep').click()
         time.sleep(1)
 
-    # Stair Tracker
-    # "Did you take the stairs today?"  Why, yes as a matter of fact.
-    driver.find_element_by_id('tracker-13-track-yes').click()
-    time.sleep(1)
+        # Enter steps
+        driver.find_element_by_id('numberOfSteps').send_keys('5000')
+        driver.find_element_by_id('track-steps').click()
+        time.sleep(1)
 
-    # Breakfast tracker
-    # "Did you eat a healthy breakfast today?"  Whole Greek yougurt or bust.
-    driver.find_element_by_id('tracker-44-track-yes').click()
-    time.sleep(1)
+        # Enter workout
+        # In my case, 60 minutes of Circuit Training on Mon, Wed, Friday.
+        dayOfWeek = datetime.datetime.today().weekday()
+        if(    dayOfWeek == 0   # Monday
+            or dayOfWeek == 2   # Wednesday
+            or dayOfWeek == 4): # Friday
+            driver.find_element_by_id('steps-converter-activity-input').send_keys('Circuit Training' + Keys.ENTER)
+            driver.find_element_by_id('steps-converter-time-input').send_keys('60')
+            driver.find_element_by_id('steps-converter-submit').click()
+            time.sleep(1)
 
+        # Stair Tracker
+        # "Did you take the stairs today?"  Why, yes as a matter of fact.
+        driver.find_element_by_id('tracker-13-track-yes').click()
+        time.sleep(1)
+
+        # Breakfast tracker
+        # "Did you eat a healthy breakfast today?"  Whole Greek yougurt or bust.
+        driver.find_element_by_id('tracker-44-track-yes').click()
+        time.sleep(1)
+
+    else:
+        print 'Option -d enabled; automatic entries disabled for debugging purposes.' 
+        
     # Exit.
     # "Go on, git!"
     driver.close()
